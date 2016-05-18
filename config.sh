@@ -52,6 +52,7 @@ export KERNEL_VERSION_MINOR="6"
 export KERNEL_VERSION="${KERNEL_VERSION_MAJOR}.${KERNEL_VERSION_MINOR}"
 
 export GLIBC_VERSION="2.23"
+export NEWLIB_VERSION="2.4.0"
 
 # The GCC version number should be in the same minor series as your host
 # compiler. For example, if your host has GCC 4.9.1, you can probably set
@@ -114,6 +115,17 @@ export GLIBC_CONFIGURE_OPTIONS=(
 
 GLIBC_CONFIGURE_OPTIONS+=(${GLOBAL_CONFIGURE_OPTIONS[*]})
 
+export NEWLIB_FILENAME="newlib-${NEWLIB_VERSION}.tar.gz"
+export NEWLIB_URL="${SOURCEWARE_BASE_URL}/newlib/${NEWLIB_FILENAME}"
+export NEWLIB_TARBALL="${XC_TARBALL_DIR}/${NEWLIB_FILENAME}"
+export NEWLIB_SRC_DIR="${XC_TMP_DIR}/newlib-${NEWLIB_VERSION}"
+export NEWLIB_BUILD_DIR="${XC_TMP_DIR}/build-newlib"
+export NEWLIB_CONFIGURE_OPTIONS=(
+  "--prefix=${XC_PREFIX}"
+)
+
+NEWLIB_CONFIGURE_OPTIONS+=(${GLOBAL_CONFIGURE_OPTIONS[*]})
+
 export GCC_FILENAME="gcc-${GCC_VERSION}.tar.gz"
 export GCC_URL="${GNU_BASE_URL}/gcc/gcc-${GCC_VERSION}/${GCC_FILENAME}"
 export GCC_TARBALL="${XC_TARBALL_DIR}/${GCC_FILENAME}"
@@ -124,6 +136,10 @@ export GCC_CONFIGURE_OPTIONS=(
   "--prefix=${XC_PREFIX}"
   "--enable-languages=${GCC_LANGS}"
 )
+
+if [ ! -z ${USE_NEWLIB} ]; then
+  GCC_CONFIGURE_OPTIONS+=("--with-newlib")
+fi
 
 GCC_CONFIGURE_OPTIONS+=(${GLOBAL_CONFIGURE_OPTIONS[*]})
 

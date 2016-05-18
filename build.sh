@@ -3,6 +3,8 @@
 set -u
 set -e
 
+export USE_NEWLIB=${USE_NEWLIB:-}
+
 source ./config.sh
 
 export FULL_REBUILD=${FULL_REBUILD:-}
@@ -51,6 +53,11 @@ if [ ! -x ${FULL_REBUILD} ]; then
   # Glibc
   if [ ! -f ${GLIBC_TARBALL} ]; then
     wget ${GLIBC_URL} -O ${GLIBC_TARBALL}
+  fi
+
+  # newlib
+  if [ ! -f ${NEWLIB_TARBALL} ]; then
+    wget ${NEWLIB_URL} -O ${NEWLIB_TARBALL}
   fi
 
   # GCC
@@ -106,6 +113,13 @@ if [ ! -z ${FULL_REBUILD} ]; then
   fi
 
   tar -xf ${GLIBC_TARBALL} -C ${XC_TMP_DIR}
+
+  # newlib
+  if [ -d ${NEWLIB_SRC_DIR} ]; then
+    rm -rf ${NEWLIB_SRC_DIR}
+  fi
+
+  tar -xf ${NEWLIB_TARBALL} -C ${XC_TMP_DIR}
 
   # GCC
   if [ -d ${GCC_SRC_DIR} ]; then
@@ -185,32 +199,47 @@ ${GCC_SRC_DIR}/configure ${GCC_CONFIGURE_OPTIONS[*]}
 make all-gcc
 make install-gcc
 
-# Build glibc (first pass)
-# Remove and recreate the build directory
-if [ -d ${GLIBC_BUILD_DIR} ]; then
-  rm -rf ${GLIBC_BUILD_DIR}
+if [ -z ${USE_NEWLIB} ]; then
+  # Build glibc (first pass)
+  # Remove and recreate the build directory
+  if [ -d ${GLIBC_BUILD_DIR} ]; then
+    rm -rf ${GLIBC_BUILD_DIR}
+  fi
+
+  mkdir ${GLIBC_BUILD_DIR}
+
+  cd ${GLIBC_BUILD_DIR}
+  ${GLIBC_SRC_DIR}/configure ${GLIBC_CONFIGURE_OPTIONS[*]}
+  make install-bootstrap-headers=yes install-headers
+  make csu/subdir_lib
+  install csu/crt1.o csu/crti.o csu/crtn.o ${XC_HEADER_DIR}/lib
+  ${XC_TARGET}-gcc -nostdlib -nostartfiles -shared -x c /dev/null -o ${XC_HEADER_DIR}/lib/libc.so
+  touch ${XC_HEADER_DIR}/include/gnu/stubs.h
+
+  # Build GCC (second pass)
+  cd ${GCC_BUILD_DIR}
+  make all-target-libgcc
+  make install-target-libgcc
+
+  # Build glibc (second pass)
+  cd ${GLIBC_BUILD_DIR}
+  make
+  make install
+else
+  # Build newlib (one pass)
+  if [ -d ${NEWLIB_BUILD_DIR} ]; then
+    rm -rf ${NEWLIB_BUILD_DIR}
+  fi
+
+  mkdir ${NEWLIB_BUILD_DIR}
+
+  cd ${NEWLIB_BUILD_DIR}
+  ${NEWLIB_SRC_DIR}/configure ${NEWLIB_CONFIGURE_OPTIONS[*]}
+  make
+  make install
 fi
 
-mkdir ${GLIBC_BUILD_DIR}
 
-cd ${GLIBC_BUILD_DIR}
-${GLIBC_SRC_DIR}/configure ${GLIBC_CONFIGURE_OPTIONS[*]}
-make install-bootstrap-headers=yes install-headers
-make csu/subdir_lib
-install csu/crt1.o csu/crti.o csu/crtn.o ${XC_HEADER_DIR}/lib
-${XC_TARGET}-gcc -nostdlib -nostartfiles -shared -x c /dev/null -o ${XC_HEADER_DIR}/lib/libc.so
-touch ${XC_HEADER_DIR}/include/gnu/stubs.h
-
-
-# Build GCC (second pass)
-cd ${GCC_BUILD_DIR}
-make all-target-libgcc
-make install-target-libgcc
-
-# Build glibc (second pass)
-cd ${GLIBC_BUILD_DIR}
-make
-make install
 
 # Build and install GCC (third pass)
 cd ${GCC_BUILD_DIR}
