@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # If target name is set, set relevant variables as appropriate
-export XC_TARGET_NAME=${XC_TARGET_NAME:-}
+export XC_TARGET_NAME=rpi3
 
 # XC_TARGET is the target architecture for the toolchain. Depending on the
 # architecture, you may need all parts of the triplet (e.g. for a Raspberry Pi
@@ -15,8 +15,8 @@ if [ ! -z ${XC_TARGET_NAME} ]; then
     export XC_TARGET="arm-unknown-linux-gnueabihf"
     export XC_KERNEL_TARGET="arm"
   elif [ "${XC_TARGET_NAME}" == "rpi3" ]; then
-    export XC_TARGET="arm-linux-gnueabi"
-    export XC_KERNEL_TARGET="arm64"
+    export XC_TARGET="arm-linux-gnueabihf"
+    export XC_KERNEL_TARGET="arm"
   else
     echo "Invalid XC_TARGET_NAME: ${XC_TARGET_NAME}"
     exit 1
@@ -34,6 +34,10 @@ export PARALLEL_MAKE=""
 if [ ! -z ${PARALLEL_BUILDS} ]; then
   PARALLEL_MAKE="-j ${PARALLEL_BUILDS} --output-sync"
 fi
+
+# Provide verbosity flag to tar, otherwise leave empty:
+# Either "v" for verbose, or "" for none
+export XC_TAR_VERBOSITY=""
 
 # Prefix to use for downloading and building the toolchain, as well as
 # the destination directory for the final binaries. This prefix must not
@@ -54,36 +58,36 @@ export PATH="${XC_PREFIX}/bin:${PATH}"
 export GNU_BASE_URL="https://ftpmirror.gnu.org"
 export SOURCEWARE_BASE_URL="ftp://sourceware.org/pub"
 export KERNEL_BASE_URL="https://www.kernel.org/pub/linux/kernel"
-export GCC_BASE_URL="ftp://gcc.gnu.org/pub/gcc"
+export GCC_BASE_URL="https://gcc.gnu.org/pub/gcc"
 
 # Version numbers for the relevant components of the toolchain. Not all
 # version combinations have been tested. Unless you need a feature in
 # a later version, do not edit these options.
-export BINUTILS_VERSION="2.28"
+export BINUTILS_VERSION="2.31.1"
 
 # Kernel headers are required for glibc
 # Generally it is best to choose the latest stable release
 export KERNEL_VERSION_MAJOR="4"
-export KERNEL_VERSION_MINOR="11.2"
+export KERNEL_VERSION_MINOR="17.11"
 export KERNEL_VERSION="${KERNEL_VERSION_MAJOR}.${KERNEL_VERSION_MINOR}"
 
-export GLIBC_VERSION="2.25"
+export GLIBC_VERSION="2.28"
 
 # The GCC version number should be in the same minor series as your host
 # compiler. For example, if your host has GCC 4.9.1, you can probably set
 # GCC_VERSION to the latest version of the 4.9.x series, but you should not
 # set it to 5.x.
-export GCC_VERSION=${GCC_VERSION:-"5.4.0"}
-export GCC_LANGS="c,c++"
+# This needs to be a releases version
+export GCC_VERSION=${GCC_VERSION:-"8.2.0"}
+export GCC_LANGS="c,c++,fortran"
 
-export MPFR_VERSION="3.1.5"
-export MPC_VERSION="1.0.3"
+export MPFR_VERSION="4.0.1"
+export MPC_VERSION="1.1.0"
 
 export GMP_VERSION="6.1.2"
 export GMP_VERSION_MINOR=""
 
-export ISL_VERSION="0.16.1"
-export CLOOG_VERSION="0.18.1"
+export ISL_VERSION="0.18"
 
 export GLOBAL_CONFIGURE_OPTIONS=(
   "--target=${XC_TARGET}"
@@ -144,8 +148,8 @@ export GLIBC_CONFIGURE_OPTIONS=(
 
 GLIBC_CONFIGURE_OPTIONS+=(${GLOBAL_CONFIGURE_OPTIONS[*]})
 
-export GCC_FILENAME="gcc-${GCC_VERSION}.tar.bz2"
-export GCC_URL="${GNU_BASE_URL}/gcc/gcc-${GCC_VERSION}/${GCC_FILENAME}"
+export GCC_FILENAME="gcc-${GCC_VERSION}.tar.xz"
+export GCC_URL="${GCC_BASE_URL}/releases/gcc-${GCC_VERSION}/${GCC_FILENAME}"
 export GCC_TARBALL="${XC_TARBALL_DIR}/${GCC_FILENAME}"
 export GCC_SRC_DIR="${XC_TMP_DIR}/gcc-${GCC_VERSION}"
 export GCC_BUILD_DIR="${XC_TMP_DIR}/build-gcc"
@@ -176,8 +180,3 @@ export ISL_FILENAME="isl-${ISL_VERSION}.tar.bz2"
 export ISL_URL="${GCC_BASE_URL}/infrastructure/${ISL_FILENAME}"
 export ISL_TARBALL="${XC_TARBALL_DIR}/${ISL_FILENAME}"
 export ISL_SRC_DIR="${XC_TMP_DIR}/isl-${ISL_VERSION}"
-
-export CLOOG_FILENAME="cloog-${CLOOG_VERSION}.tar.gz"
-export CLOOG_URL="${GCC_BASE_URL}/infrastructure/${CLOOG_FILENAME}"
-export CLOOG_TARBALL="${XC_TARBALL_DIR}/${CLOOG_FILENAME}"
-export CLOOG_SRC_DIR="${XC_TMP_DIR}/cloog-${CLOOG_VERSION}"

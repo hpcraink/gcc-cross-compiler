@@ -83,10 +83,6 @@ if [ ! -x ${FULL_REBUILD} ]; then
     wget ${ISL_URL} -O ${ISL_TARBALL}
   fi
 
-  # Cloog
-  if [ ! -f ${CLOOG_TARBALL} ]; then
-    wget ${CLOOG_URL} -O ${CLOOG_TARBALL}
-  fi
 fi
 
 # Extract all tarballs
@@ -102,14 +98,14 @@ if [ ! -z ${FULL_REBUILD} ]; then
     rm -rf ${BINUTILS_SRC_DIR}
   fi
 
-  tar -xvf ${BINUTILS_TARBALL} -C ${XC_TMP_DIR}
+  tar -x${XC_TAR_VERBOSITY}f ${BINUTILS_TARBALL} -C ${XC_TMP_DIR}
 
   # Linux
   if [ -d ${KERNEL_SRC_DIR} ]; then
     rm -rf ${KERNEL_SRC_DIR}
   fi
 
-  tar -xvf ${KERNEL_TARBALL} -C ${XC_TMP_DIR}
+  tar -x${XC_TAR_VERBOSITY}f ${KERNEL_TARBALL} -C ${XC_TMP_DIR}
 
   # glibc
   if [ ! -f ${GLIBC_TARBALL_SIG} ]; then
@@ -122,21 +118,21 @@ if [ ! -z ${FULL_REBUILD} ]; then
     rm -rf ${GLIBC_SRC_DIR}
   fi
 
-  tar -xvf ${GLIBC_TARBALL} -C ${XC_TMP_DIR}
+  tar -x${XC_TAR_VERBOSITY}f ${GLIBC_TARBALL} -C ${XC_TMP_DIR}
 
   # GCC
   if [ -d ${GCC_SRC_DIR} ]; then
     rm -rf ${GCC_SRC_DIR}
   fi
 
-  tar -xvf ${GCC_TARBALL} -C ${XC_TMP_DIR}
+  tar -x${XC_TAR_VERBOSITY}f ${GCC_TARBALL} -C ${XC_TMP_DIR}
 
   # MPFR
   if [ -d ${MPFR_SRC_DIR} ]; then
     rm -rf ${MPFR_SRC_DIR}
   fi
 
-  tar -xvf ${MPFR_TARBALL} -C ${XC_TMP_DIR}
+  tar -x${XC_TAR_VERBOSITY}f ${MPFR_TARBALL} -C ${XC_TMP_DIR}
   ln -s ${MPFR_SRC_DIR} ${GCC_SRC_DIR}/mpfr
 
   # MPC
@@ -144,7 +140,7 @@ if [ ! -z ${FULL_REBUILD} ]; then
     rm -rf ${MPC_SRC_DIR}
   fi
 
-  tar -xvf ${MPC_TARBALL} -C ${XC_TMP_DIR}
+  tar -x${XC_TAR_VERBOSITY}f ${MPC_TARBALL} -C ${XC_TMP_DIR}
   ln -s ${MPC_SRC_DIR} ${GCC_SRC_DIR}/mpc
 
   # GMP
@@ -152,7 +148,7 @@ if [ ! -z ${FULL_REBUILD} ]; then
     rm -rf ${GMP_SRC_DIR}
   fi
 
-  tar -xvf ${GMP_TARBALL} -C ${XC_TMP_DIR}
+  tar -x${XC_TAR_VERBOSITY}f ${GMP_TARBALL} -C ${XC_TMP_DIR}
   ln -s ${GMP_SRC_DIR} ${GCC_SRC_DIR}/gmp
 
   # ISL
@@ -160,16 +156,9 @@ if [ ! -z ${FULL_REBUILD} ]; then
     rm -rf ${ISL_SRC_DIR}
   fi
 
-  tar -xvf ${ISL_TARBALL} -C ${XC_TMP_DIR}
+  tar -x${XC_TAR_VERBOSITY}f ${ISL_TARBALL} -C ${XC_TMP_DIR}
   ln -s ${ISL_SRC_DIR} ${GCC_SRC_DIR}/isl
 
-  # Cloog
-  if [ -d ${CLOOG_SRC_DIR} ]; then
-    rm -rf ${CLOOG_SRC_DIR}
-  fi
-
-  tar -xvf ${CLOOG_TARBALL} -C ${XC_TMP_DIR}
-  ln -s ${CLOOG_SRC_DIR} ${GCC_SRC_DIR}/cloog
 fi
 
 # Build binutils
